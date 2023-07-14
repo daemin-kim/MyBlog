@@ -7,8 +7,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Duration;
+import java.util.Date;
+import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -39,6 +43,54 @@ public class TokenProviderTest {
                 .get("id", Long.class);
 
         assertThat(userId).isEqualTo(testUser.getId());
+    }
+
+    @DisplayName("validToken()")
+    @Test
+    void validToken() {
+        String token = JwtFactory.builder().expiration(new Date(new Date().getTime() - Duration.ofDays(7).toMillis()))
+                .build().createToken(jwtProperties);
+
+        boolean result = tokenProvider.validToken(token);
+        assertThat(result).isFalse();
+    }
+
+    @DisplayName("validToken()")
+    @Test
+    void validToken_validToken() {
+        String token = JwtFactory.withDefaultValues().createToken(jwtProperties);
+
+        boolean result = tokenProvider.validToken(token);
+
+        assertThat(result).isTrue();
+    }
+
+    @DisplayName("getAuthentication()")
+    @Test
+    void getAuthentication() {
+        String userEmail = "user@email.com";
+        String token = JwtFactory.builder()
+                .subject(userEmail)
+                .build()
+                .createToken(jwtProperties);
+
+        Authentication authentication = tokenProvider.getAuthentication(token);
+
+        assertThat(((UserDetails) authentication.getPrincipal()).getUsername()).isEqualTo(userEmail);
+    }
+
+    @DisplayName("getUserId()")
+    @Test
+    void getUserId() {
+        Long userId = 1L;
+        String token = JwtFactory.builder()
+                .claims(Map.of("id", userId))
+                .build()
+                .createToken(jwtProperties);
+
+        Long userIdByToken = tokenProvider.getUserId(token);
+
+        assertThat(userIdByToken).isEqualTo(userId);
     }
 
 }
