@@ -35,8 +35,18 @@ public class Article {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Builder // 빌더 패턴을 사용하여 객체 생성
-    public Article(String title, String content) {
+    @Column(name = "author", nullable = false)
+    private String author;
+
+//    @Builder // 빌더 패턴을 사용하여 객체 생성
+//    public Article(String title, String content) {
+//        this.title = title;
+//        this.content = content;
+//    }
+
+    @Builder // 빌더 패턴은 하나만 존재해야함
+    public Article(String author, String title, String content) {
+        this.author = author;
         this.title = title;
         this.content = content;
     }

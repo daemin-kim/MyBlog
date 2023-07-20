@@ -10,7 +10,18 @@ spring:
     username: sa
   h2:
     console:
-      enabled:
+      enabled: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 515672038785-moc9ecctf1b9nrj87d3e125i0d20lrtu.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
+
 
 jwt:
   issuer: kdm0068@gmail.com

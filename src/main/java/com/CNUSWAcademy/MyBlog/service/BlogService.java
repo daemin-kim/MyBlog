@@ -6,6 +6,7 @@ import com.CNUSWAcademy.MyBlog.dto.UpdateArticleRequest;
 import com.CNUSWAcademy.MyBlog.repository.BlogRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,8 +18,8 @@ public class BlogService {
     private final BlogRepository blogRepository;
 
     // save()는 JpaRepository에서 지원하는 저장 메소드. 정확히는 JpaRepository의 부모 클래스인 CrudRepository에 선언되어 있음.
-    public Article save(AddArticleRequest request) {
-        return blogRepository.save(request.toEntity());
+    public Article save(AddArticleRequest request, String userName) {
+        return blogRepository.save(request.toEntity(userName));
     }
 
     public List<Article> finaAll() {
@@ -31,18 +32,31 @@ public class BlogService {
     }
 
     public void delete(long id) {
-        blogRepository.deleteById(id);
+        Article article = blogRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
+        authorizeArticleAuthor(article);
+        blogRepository.delete(article);
     }
-    
+
+    private void authorizeArticleAuthor(Article article) {
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!article.getAuthor().equals(userName)) {
+            throw new IllegalArgumentException("not authorized");
+        }
+    }
+
     @Transactional
     // 트랜잭션 메서드 (트랜잭션을 적용하기 위해 다른 작업을 할 필요 없이 @Transactional 애너테이션 사용)
     // update() 메서드는 엔티티의 필드 값이 바뀌면 중간에 에러가 발생해도 제대로 된 값 수정을 보장함
     public Article update(long id, UpdateArticleRequest request) {
         Article article = blogRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
+        authorizeArticleAuthor(article);
         article.update(request.getTitle(), request.getContent());
 
         return article;
     }
+
+
 
 }
