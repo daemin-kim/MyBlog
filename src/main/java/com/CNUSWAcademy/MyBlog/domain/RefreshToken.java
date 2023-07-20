@@ -5,6 +5,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+
+// 리프레시 토큰은 데이터베이스에 저장하는 정보임으로 엔티티와 레포지토리를 추가해야함.
+
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
